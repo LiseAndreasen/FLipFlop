@@ -70,3 +70,24 @@ print("Part 2:", wall_hit)
 
 ###########################################################################
 # part 3
+
+# instead of moving the wall, move the robot more
+
+wall = np.zeros_like(range(last_wall))
+robot_pos = 0
+
+for i in range(no_of_moves):
+	j = no_of_moves - i - 1
+	if moves[i] == ">":
+		robot_pos = (robot_pos + 1) % last_wall
+	if moves[i] == "<":
+		robot_pos = (robot_pos - 1) % last_wall
+	if moves[j] == ">":
+		robot_pos = (robot_pos - 1) % last_wall
+	if moves[j] == "<":
+		robot_pos = (robot_pos + 1) % last_wall
+	wall[robot_pos] += 1
+
+max_wall = np.max(wall)
+max_pos = np.argmax(wall) + 1		# adjust wall pos, now 1-100
+print("Part 3:", max_wall * max_pos)
