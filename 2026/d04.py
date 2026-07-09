@@ -38,7 +38,19 @@ print("Part 1:", no_of_leaves)
 ###########################################################################
 # part 2
 
-print("Part 2:")
+swaps = -1
+side = ""
+for i in lines:
+	if "|-o" in i:
+		if side != "right":
+			swaps += 1
+			side = "right"
+	if "o-|" in i:
+		if side != "left":
+			swaps += 1
+			side = "left"		
+
+print("Part 2:", swaps)
 
 ###########################################################################
 # part 3
