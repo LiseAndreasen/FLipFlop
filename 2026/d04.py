@@ -38,6 +38,8 @@ print("Part 1:", no_of_leaves)
 ###########################################################################
 # part 2
 
+# i am counting swaps from above, gives the same number
+
 swaps = -1
 side = ""
 for i in lines:
@@ -55,4 +57,25 @@ print("Part 2:", swaps)
 ###########################################################################
 # part 3
 
-print("Part 3:")
+# i am counting breaks from above, gives the same number
+
+climbs = 0
+can_climb = True
+while can_climb:
+	can_climb = False
+	side = ""
+	for i in range(h):
+		if "|-o" in lines[i]:
+			can_climb = True
+			if side != "right":
+				lines[i] = "|"
+				side = "right"
+		if "o-|" in lines[i]:
+			can_climb = True
+			if side != "left":
+				lines[i] = "|"
+				side = "left"
+	if can_climb:
+		climbs += 1
+
+print("Part 3:", climbs)
