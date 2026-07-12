@@ -32,14 +32,72 @@ def print_map(map):
 	for m in map:
 		print("".join(m))
 
+# returns _ when the coordinates are outside the map
 def get_value(map, r, c):
 	if r < 0 or c < 0:
-		return ""
+		return "_"
 	if len(map) <= r:
-		return ""
+		return "_"
 	if len(map[0]) <= c:
-		return ""
+		return "_"
 	return map[r][c]
+
+def turn_gears(map, part):
+	match part:
+		case 1:
+			all_gears = "#"
+			all_lights = "*"
+			all_bluetooth = ""
+		case 2:
+			all_gears = "#3"
+			all_lights = "*"
+			all_bluetooth = "abcdefghijklmnopqrstuvwxyz"
+	
+	turns = copy.deepcopy(map)
+	cell1 = find_char("S", turns)
+	[r, c] = cell1
+	turns[r][c] = "L"
+	cells = [cell1]
+	
+	# turn gears into directions, L or R
+	# turn lights into high or low, 1 or 0
+	
+	while 0 < len(cells):
+		cell = cells.pop(0)
+		[r, c] = cell
+		turn = turns[r][c]
+		for dir in dirs:
+			[dr, dc] = dir 
+			char = get_value(turns, r + dr, c + dc)
+			if char in all_gears:
+				if turn == "R":
+					turns[r+dr][c+dc] = "L"
+				else:
+					turns[r+dr][c+dc] = "R"
+				cells.append([r+dr, c+dc])
+			if char in all_lights:
+				if turn == "R":
+					turns[r+dr][c+dc] = "1"
+				else:
+					turns[r+dr][c+dc] = "0"
+			if char in all_bluetooth:
+				upper_char = char.upper()
+				upper_cell = find_char(upper_char, map)
+				[ru, cu] = upper_cell
+				if turn == "R":
+					turns[r+dr][c+dc] = "L"
+					turns[ru][cu] = "R"
+				else:
+					turns[r+dr][c+dc] = "R"
+					turns[ru][cu] = "L"
+				cells.append([ru, cu])
+	
+	# look for the lights, turn the sequence of lights into a binary number
+	
+	lights = "".join(list(itertools.chain.from_iterable(turns)))
+	lights = re.sub('[^01]', '', lights)
+	final_state = int(lights, 2)
+	return final_state
 
 ###########################################################################
 # prep
@@ -52,62 +110,21 @@ for l in lines:
 
 chars1 = "".join(list(itertools.chain.from_iterable(map)))
 chars2 = ''.join(sorted(set(chars1)))
-print("Unique characters in input:", chars2)
+print("Unique characters in input:", chars2, "\n")
 
 ###########################################################################
 # part 1
 
-turns = copy.deepcopy(map)
-cell1 = find_char("S", turns)
-[r, c] = cell1
-turns[r][c] = "L"
-cells = [cell1]
-
-# turn gears into directions, L or R
-# turn lights into high or low, 1 or 0
-
-while 0 < len(cells):
-	cell = cells.pop(0)
-	[r, c] = cell
-	turn = turns[r][c]
-	for dir in dirs:
-		[dr, dc] = dir 
-		char = get_value(turns, r + dr, c + dc)
-		match char:
-			case "#":
-				if turn == "R":
-					turns[r+dr][c+dc] = "L"
-				else:
-					turns[r+dr][c+dc] = "R"
-				cells.append([r+dr, c+dc])
-			case "*":
-				if turn == "R":
-					turns[r+dr][c+dc] = "1"
-				else:
-					turns[r+dr][c+dc] = "0"
-			case "R":
-				do = 0
-			case "L":
-				do = 0
-			case "h":
-				do = 0
-			case "l":
-				do = 0
-			case _:
-				turns[r+dr][c+dc] = " "
-
-# look for the lights, turn the sequence of lights into a binary number
-
-lights = "".join(list(itertools.chain.from_iterable(turns)))
-lights = re.sub('[^01]', '', lights)
-final_state = int(lights, 2)
-
+part = 1
+final_state = turn_gears(map, part)
 print("Part 1:", final_state)
 
 ###########################################################################
 # part 2
 
-print("Part 2:")
+part = 2
+final_state = turn_gears(map, part)
+print("Part 2:", final_state)
 
 ###########################################################################
 # part 3
