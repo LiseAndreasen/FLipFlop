@@ -1,6 +1,8 @@
 ###########################################################################
 # import
 
+import functools
+
 ###########################################################################
 # constants
 
@@ -18,6 +20,45 @@ def get_input():
         for line in f:
             lines.append(line.rstrip())
     return lines
+
+def memoize(func):
+    cache = {}
+    @functools.wraps(func)
+    def wrapper(*args):
+        if args not in cache:
+            cache[args] = func(*args)
+        return cache[args]
+    return wrapper
+
+@memoize
+def expand_stoats(s0, s1, gen):
+	#print("gen", gen, "begin", s0, s1)
+	new_stoats = []
+	for r in rules:
+		r0 = r[0]
+		r1 = r[1]
+		if (s0 == r0 and s1 == r1) or (s0 == r1 and s1 == r0):
+			new_stoats.append(s0)
+			for i in range(2,len(r)):
+				new_stoats.append(r[i])
+			break
+	new_stoats.append(s1)
+	
+	# the caller will count s0 and s1
+	if gen == 0:
+		#print("gen", gen, "end", s0, new_stoats, s1)
+		return len(new_stoats) - 2
+	else:
+		no_of_stoats = 1
+		for s_no in range(len(new_stoats)-1):
+			s0a = new_stoats[s_no]
+			s1a = new_stoats[s_no+1]
+			no = expand_stoats(s0a, s1a, gen - 1)
+			#print("gen", gen - 1, s0a, no, s1a)
+			no_of_stoats += no + 1
+		#print("gen", gen, "end", s0, no_of_stoats, s1)
+		return no_of_stoats - 2
+
 
 ###########################################################################
 # prep
@@ -72,4 +113,11 @@ print("Part 2:", len(stoats))
 ###########################################################################
 # part 3
 
-print("Part 3:")
+stoats = first_stoats
+no_of_generations = 21
+no_of_stoats = 1
+s0 = stoats[0]
+s1 = stoats[1]
+no_of_stoats = expand_stoats(s0, s1, no_of_generations - 1) + 2
+
+print("Part 3:", no_of_stoats)
