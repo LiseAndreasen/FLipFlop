@@ -22,7 +22,7 @@ def get_input():
 ###########################################################################
 # prep
 
-file = input1
+file = input2
 lines = get_input()
 rules = []
 for l in lines:
@@ -49,7 +49,25 @@ print("Part 1:", len(new_stoats))
 ###########################################################################
 # part 2
 
-print("Part 2:")
+stoats = first_stoats
+no_of_generations = 7
+for j in range(no_of_generations):
+	new_stoats = []
+	for s_no in range(len(stoats)-1):
+		s0 = stoats[s_no]
+		s1 = stoats[s_no+1]
+		for r in rules:
+			r0 = r[0]
+			r1 = r[1]
+			if (s0 == r0 and s1 == r1) or (s0 == r1 and s1 == r0):
+				new_stoats.append(s0)
+				for i in range(2,len(r)):
+					new_stoats.append(r[i])
+				break
+	new_stoats.append(stoats[len(stoats)-1])
+	stoats = new_stoats
+
+print("Part 2:", len(stoats))
 
 ###########################################################################
 # part 3
