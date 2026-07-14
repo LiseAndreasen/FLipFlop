@@ -39,7 +39,7 @@ def get_value(map, r, c):
 		return "_"
 	return map[r][c]
 
-def create_graph(map):
+def create_graph(map, part):
 	global start_coord, end_coord
 	gGraph = [[0 for column in range(all_cells)]
 	                      for row in range(all_cells)]
@@ -56,14 +56,27 @@ def create_graph(map):
 				end_coord = id
 			for dir in dirs:
 				[dr, dc] = dir
-				id_neigh = map_id(r+dr,c+dc,len(map))
-				char_neigh = get_value(map, r+dr, c+dc)
+				r_new = r + dr
+				c_new = c + dc
+				char_neigh = get_value(map, r_new, c_new)
+				id_neigh = map_id(r_new,c_new,len(map))
 				if char_neigh == "_":
 					continue
 				if char_neigh == wall:
 					continue
 				gGraph[id][id_neigh] = 1
-	
+				if part == 2:
+					while char_neigh != "_" and char_neigh != wall:
+						r_new += dr
+						c_new += dc
+						char_neigh = get_value(map, r_new, c_new)
+						id_neigh = map_id(r_new,c_new,len(map))
+					# 1 step too much
+					r_new -= dr
+					c_new -= dc 
+					id_neigh = map_id(r_new,c_new,len(map))
+					gGraph[id][id_neigh] = 1
+		
 	return gGraph
 
 ###########################################################################
@@ -78,27 +91,48 @@ for l in lines:
 ###########################################################################
 # part 1
 
+part = 1
+
 # convert map to graph
 
+print("Part 1:")
 print("Create graph for map")
 
 all_cells = len(map) * len(map[0])
 start_coord = -1
 end_coord = -1
-gGraph = create_graph(map)
+gGraph = create_graph(map, part)
 
 g = Graph(all_cells)
 g.graph = gGraph
 
 # dijkstra!
 
-print("Part 1:")
+print"Go Dijkstra"
 g.dijkstra(start_coord, end_coord)
 
 ###########################################################################
 # part 2
 
+part = 2
+
+# convert map to graph
+
 print("Part 2:")
+print("Create graph for map")
+
+all_cells = len(map) * len(map[0])
+start_coord = -1
+end_coord = -1
+gGraph = create_graph(map, part)
+
+g = Graph(all_cells)
+g.graph = gGraph
+
+# dijkstra!
+
+print"Go Dijkstra"
+g.dijkstra(start_coord, end_coord)
 
 ###########################################################################
 # part 3
