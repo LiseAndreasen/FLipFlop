@@ -61,10 +61,12 @@ def convert_lines_to_program(lines):
 					prglines.append(["jump", "label" + str(l4[1])])
 				#9 nas: Jump to label if value in register is zero. (reg, label)
 				case 9:
-					prglines.append(["jump0", l4[1], "label" + str(l4[2])])
+					prglines.append(["jump0", l4[1],
+						"label" + str(l4[2])])
 				#10 nas: Jump to label if value in register is not zero. (reg, label)
 				case 10:
-					prglines.append(["jump0not", l4[1], "label" + str(l4[2])])
+					prglines.append(["jump0not", l4[1],
+						"label" + str(l4[2])])
 		else:
 			l2 = l.split("be")
 			name = "label" + str(len(re.findall("na", l2[1])))
@@ -72,9 +74,10 @@ def convert_lines_to_program(lines):
 			prglines.append([name])
 	return [prglines, labels]
 
-def run_program(prglines, labels, r0):
+def run_program(prglines, labels, r0, r1, part):
 	reg = [0 for column in range(16)]
 	reg[0] = r0
+	reg[1] = r1
 	steps = 0
 	
 	pc = 0			# program counter
@@ -124,7 +127,10 @@ def run_program(prglines, labels, r0):
 		if steps == max_steps:
 			break
 				
-	print("steps:", steps, "\t\treg..:", reg)
+	if part == 1:
+		print("r0:", r0, "\tr1:", r1, "\tsteps:", steps, "\treg..:", reg)
+	if part == 2 and steps == max_steps:
+		print("r0:", r0, "\tr1:", r1, "\tsteps:", steps, "\treg..:", reg)
 	return steps
 
 ###########################################################################
@@ -140,17 +146,21 @@ lines = get_input()
 # part 1
 
 print("Part 1:")
+part = 1
 start_r0 = 0
-run_program(prglines, labels, start_r0)
+start_r1 = 0
+run_program(prglines, labels, start_r0, start_r1, part)
 
 ###########################################################################
 # part 2
 
 print("Part 2:")
+part = 2
 infinite = 0
 max_r0 = 100
+start_r1 = 0
 for start_r0 in range(max_r0):
-	steps = run_program(prglines, labels, start_r0)
+	steps = run_program(prglines, labels, start_r0, start_r1, part)
 	if steps == max_steps:
 		infinite += 1
 
@@ -160,3 +170,24 @@ print("Infinite programs:", infinite)
 # part 3
 
 print("Part 3:")
+print("Look at r0 from 0 and up combined with all possible r1's.")
+
+part = 3
+infinite = 0
+actual_max_r0 = 65536
+max_r0 = 32
+max_r1 = 16
+for start_r0 in range(max_r0):
+	print(start_r0, "\t", end='')
+	for start_r1 in range(max_r1):
+		steps = run_program(prglines, labels, start_r0, start_r1, part)
+		if steps == max_steps:
+			infinite += 1
+			print(start_r1, "\t", end='')
+		else:
+			print(".", "\t", end='')
+	print("")
+
+print("This looks like a repeating pattern.")
+
+print("Infinite programs:", infinite * actual_max_r0 / max_r0)
