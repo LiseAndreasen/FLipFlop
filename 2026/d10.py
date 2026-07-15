@@ -6,9 +6,10 @@ import re
 ###########################################################################
 # constants
 
-input1 = "input_d10_tst7.txt"
+input1 = "input_d10_tst.txt"
 input2 = "input_d10.txt"
 max_val = 65536
+max_steps = 5000000
 
 ###########################################################################
 # functions
@@ -71,8 +72,10 @@ def convert_lines_to_program(lines):
 			prglines.append([name])
 	return [prglines, labels]
 
-def run_program(prglines, labels):
+def run_program(prglines, labels, r0):
 	reg = [0 for column in range(16)]
+	reg[0] = r0
+	steps = 0
 	
 	pc = 0			# program counter
 	while pc < len(prglines):
@@ -95,7 +98,10 @@ def run_program(prglines, labels):
 				reg[l[3]] = (reg[l[1]] * reg[l[2]]) % max_val
 			#5 nas: Modulo values from two registers and store result in a third. (src_reg1, src_reg2, dest_reg)
 			case "mud":
-				reg[l[3]] = reg[l[1]] % reg[l[2]]
+				if reg[l[2]] == 0:
+					reg[l[3]] = 0
+				else:
+					reg[l[3]] = reg[l[1]] % reg[l[2]]
 			#6 nas: Increment value in a register by 1. (reg)
 			case "inc1":
 				reg[l[1]] = (reg[l[1]] + 1) % max_val
@@ -114,8 +120,12 @@ def run_program(prglines, labels):
 				if reg[l[1]] != 0:
 					pc = labels[l[2]]
 		pc += 1
+		steps += 1
+		if steps == max_steps:
+			break
 				
-	print(reg)
+	print("steps:", steps, "\t\treg..:", reg)
+	return steps
 
 ###########################################################################
 # prep
@@ -123,19 +133,28 @@ def run_program(prglines, labels):
 file = input2
 lines = get_input()
 
-###########################################################################
-# part 1
-
 # convert program
 [prglines, labels] = convert_lines_to_program(lines)
 
+###########################################################################
+# part 1
+
 print("Part 1:")
-run_program(prglines, labels)
+start_r0 = 0
+run_program(prglines, labels, start_r0)
 
 ###########################################################################
 # part 2
 
 print("Part 2:")
+infinite = 0
+max_r0 = 100
+for start_r0 in range(max_r0):
+	steps = run_program(prglines, labels, start_r0)
+	if steps == max_steps:
+		infinite += 1
+
+print("Infinite programs:", infinite)
 
 ###########################################################################
 # part 3
