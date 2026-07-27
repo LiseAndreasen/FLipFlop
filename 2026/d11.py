@@ -2,6 +2,7 @@
 # import
 
 import numpy as np
+import re
 
 ###########################################################################
 # constants
@@ -13,7 +14,7 @@ LEFT = 0
 UP = 1
 RIGHT = 2
 no_growth = "XX"
-empty = ".."
+empty = "..."
 STEM = "##"
 dirs = [[0, -1], [-1, 0], [0, 1]]
 
@@ -33,7 +34,15 @@ def print_map(map):
 	print("=====")
 
 def is_stem(candidate, trees):
-	if candidate in trees:
+	c = re.sub(STEM, "", candidate)
+	if c in trees:
+		return True
+	else:
+		return False
+
+def is_no_growth(candidate, trees):
+	c = re.sub(no_growth, "", candidate)
+	if c in trees:
 		return True
 	else:
 		return False
@@ -43,7 +52,7 @@ def grow_tree(tree, configurations, sprouts, stems):
 	# grow new sprouts from old sprouts
 	for sprout in sprouts:
 		[r, c] = sprout
-		id = int(tree[r][c])
+		id = tree[r][c]
 		configuration = configurations[id]
 		for i in range(len(dirs)):
 			dir = dirs[i]
@@ -51,7 +60,7 @@ def grow_tree(tree, configurations, sprouts, stems):
 			r_new = r + dr
 			c_new = c + dc
 			# if there's growth in this direction
-			if configuration[i] != no_growth:
+			if not is_no_growth(configuration[i], trees):
 				# if there's free space to grow
 				if tree[r_new][c_new] == empty:
 					tree[r_new][c_new] = configuration[i]
@@ -61,7 +70,7 @@ def grow_tree(tree, configurations, sprouts, stems):
 				# but the existing id is lower than this id
 				if not is_stem(tree[r_new][c_new], trees) and tree[r_new][c_new] < configuration[i]:
 					tree[r_new][c_new] = configuration[i]
-		tree[r][c] = tree_id
+		tree[r][c] = STEM + tree_id
 		stems.append([r,c])
 	return [tree, new_sprouts, stems]
 
@@ -84,14 +93,14 @@ def calculate_energy(tree, stems, sprouts):
 ###########################################################################
 # prep
 
-file = input1
+file = input3
 lines = get_input()
 
 ascii_0 = 97
 trees = {}
 tree_no = 0
 for i in range(len(lines)):
-	tree_id = chr(tree_no + ascii_0) + chr(tree_no + ascii_0)
+	tree_id = chr(tree_no + ascii_0)
 	configurations = {}
 	if i % 3 == 0:
 		# all the tops
@@ -100,10 +109,10 @@ for i in range(len(lines)):
 		# all the bottoms
 		bottoms = lines[i].split()
 		for j in range(len(tops)):
-			this_up = tops.pop(0)
-			this_left = bottoms.pop(0)
-			this_id = int(bottoms.pop(0))
-			this_right = bottoms.pop(0)
+			this_up = tops.pop(0) + tree_id
+			this_left = bottoms.pop(0) + tree_id
+			this_id = bottoms.pop(0) + tree_id
+			this_right = bottoms.pop(0) + tree_id
 			configurations[this_id] = [this_left, this_up, this_right]
 		trees[tree_id] = configurations
 		tree_no += 1
@@ -126,7 +135,7 @@ for tree_id in trees:
 	# grid representing tree
 	tree = [[empty for column in range(max_age*2+1)]
 	                      for row in range(max_age+1)]
-	tree[max_age][max_age] = first_tree
+	tree[max_age][max_age] = first_tree + tree_id
 	# lists of sprouts and stems
 	sprouts = [[max_age, max_age]]
 	stems = []
@@ -143,7 +152,7 @@ for tree_id in trees:
 			[energy_in, energy_out] = calculate_energy(tree, stems, sprouts)
 	print("tree dies at age", age)
 	bio_mass += len(stems) + len(sprouts)
-					
+
 print("Part 1:", bio_mass)
 
 ###########################################################################
