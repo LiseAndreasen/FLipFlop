@@ -30,7 +30,15 @@ def get_input():
 
 def print_map(map):
 	for m in map:
-		print("".join(m))
+		for c in m:
+			if is_stem(c, trees):
+				print("#", end="")
+				continue
+			if c == empty:
+				print(".", end="")
+				continue
+			print("@", end="")
+		print("")
 	print("=====")
 
 def is_stem(candidate, trees):
@@ -47,7 +55,22 @@ def is_no_growth(candidate, trees):
 	else:
 		return False
 
+def is_foreign(candidate, tree_id):
+	# look at last character in string
+	c = candidate[-1:]
+	if c == tree_id:
+		return False
+	else:
+		return True
+
 def grow_tree(tree, configurations, sprouts, stems):
+	if len(sprouts) == 0:
+		return [tree, sprouts, stems]
+		
+	root = sprouts[0]
+	[r_root, c_root] = root
+	tree_id = tree[r_root][c_root][-1:]
+	
 	new_sprouts = []
 	# grow new sprouts from old sprouts
 	for sprout in sprouts:
@@ -67,6 +90,10 @@ def grow_tree(tree, configurations, sprouts, stems):
 					new_sprouts.append([r_new, c_new])
 					continue
 				# if there isn't free space,
+				# because of another tree, stop
+				if is_foreign(tree[r_new][c_new], tree_id):
+					continue
+				# if there isn't free space,
 				# but the existing id is lower than this id
 				if not is_stem(tree[r_new][c_new], trees) and tree[r_new][c_new] < configuration[i]:
 					tree[r_new][c_new] = configuration[i]
@@ -75,16 +102,22 @@ def grow_tree(tree, configurations, sprouts, stems):
 	return [tree, new_sprouts, stems]
 
 def calculate_energy(tree, stems, sprouts):
+	root = stems[0]
+	[r_root, c_root] = root
+	tree_id = re.sub(STEM, "", tree[r_root][c_root])
+	
 	energy_out = 3 * (len(stems) + len(sprouts))
 	energy_in = 0
-	for c in range(max_age*2+1):
+	for c in range(c_root - max_age, c_root + max_age + 1):
 		column_shade = 0
 		for r in range(max_age+1):
 			if is_stem(tree[r][c], trees):
-				# height above ground
-				h = min(max_age - r + 1, max_height)
-				e = stem_contribution - column_shade
-				energy_in += e * h
+				# if my stem
+				if tree[r][c] == STEM + tree_id:
+					# height above ground
+					h = min(max_age - r + 1, max_height)
+					e = stem_contribution - column_shade
+					energy_in += e * h
 				column_shade += 1
 				if column_shade == column_shade_max:
 					break
@@ -93,7 +126,7 @@ def calculate_energy(tree, stems, sprouts):
 ###########################################################################
 # prep
 
-file = input3
+file = input2
 lines = get_input()
 
 ascii_0 = 97
@@ -158,7 +191,54 @@ print("Part 1:", bio_mass)
 ###########################################################################
 # part 2
 
-print("Part 2:")
+max_age = 100
+
+tree_distance = 10
+
+no_of_trees = len(trees)
+tree_field = [[empty for column in range(max_age*2+tree_distance*(no_of_trees-1)+1)]
+                      for row in range(max_age+1)]
+
+# plant trees
+tree_no = 0
+sprouts = {}
+stems = {}
+alive = {}
+for tree_id in trees:
+	tree_field[max_age][max_age+tree_distance*tree_no] = first_tree + tree_id
+	sprouts[tree_id] = [[max_age, max_age+tree_distance*tree_no]]
+	stems[tree_id] = []
+	alive[tree_id] = True
+	tree_no += 1
+
+age = 0
+while age < max_age:
+	age += 1
+	# grow each tree
+	for tree_id in trees:
+		if alive[tree_id]:
+			configurations = trees[tree_id]
+			[tree_field, new_sprouts, new_stems] = grow_tree(tree_field, configurations, sprouts[tree_id], stems[tree_id])
+			sprouts[tree_id] = new_sprouts
+			stems[tree_id] = new_stems
+	# calculate energy for each tree
+	if energy_age <= age:
+		for tree_id in trees:
+			if alive[tree_id]:
+				[energy_in, energy_out] = calculate_energy(tree_field, stems[tree_id], sprouts[tree_id])
+				if energy_in < energy_out:
+					print("tree", tree_id, "dies at age", age)
+					alive[tree_id] = False
+
+#print_map(tree_field)
+
+bio_mass = 0
+for tree_id in trees:
+	bio_mass += len(stems[tree_id]) + len(sprouts[tree_id])
+
+print("Part 2:", bio_mass)
+
+# 7132 is incorrect?
 
 ###########################################################################
 # part 3
