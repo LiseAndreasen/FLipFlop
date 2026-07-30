@@ -8,7 +8,7 @@ import re
 # constants
 
 input1 = "input_d11_tst.txt"
-input2 = "input_d11.txt"
+input2 = "input_d11b.txt"
 input3 = "input_d11_tst2.txt"
 LEFT = 0
 UP = 1
@@ -237,8 +237,6 @@ for tree_id in trees:
 	bio_mass += len(stems[tree_id]) + len(sprouts[tree_id])
 
 print("Part 2:", bio_mass)
-
-# 7132 is incorrect?
 
 ###########################################################################
 # part 3
