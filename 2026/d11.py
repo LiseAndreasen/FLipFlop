@@ -123,6 +123,85 @@ def calculate_energy(tree, stems, sprouts):
 					break
 	return [energy_in, energy_out]
 
+def grow_1_tree():
+	bio_mass = 0
+	
+	# grow each tree max_age years, according to the configurations
+	for tree_id in trees:
+		configurations = trees[tree_id]
+		# grid representing tree
+		tree = [[empty for column in range(max_age*2+1)]
+		                      for row in range(max_age+1)]
+		tree[max_age][max_age] = first_tree + tree_id
+		# lists of sprouts and stems
+		sprouts = [[max_age, max_age]]
+		stems = []
+		# keep track of age of tree and energies
+		age = 0
+		energy_in = 0
+		energy_out = 0
+		while energy_out <= energy_in and age < max_age:
+			# grow the tree
+			age += 1
+			[tree, sprouts, stems] = grow_tree(tree, configurations, sprouts, stems)
+			# calculate the new energy needs
+			if energy_age <= age:
+				[energy_in, energy_out] = calculate_energy(tree, stems, sprouts)
+		print("tree dies at age", age)
+		bio_mass += len(stems) + len(sprouts)
+	
+	return bio_mass
+	
+def grow_forest(generations):
+	no_of_trees = len(trees)
+	
+	while 0 < generations:
+		tree_field = [[empty for column in range(max_age*2+tree_distance*(no_of_trees-1)+1)]
+		                      for row in range(max_age+1)]
+		
+		# plant trees
+		tree_no = 0
+		sprouts = {}
+		stems = {}
+		alive = {}
+		for tree_id in trees:
+			tree_field[max_age][max_age+tree_distance*tree_no] = first_tree + tree_id
+			sprouts[tree_id] = [[max_age, max_age+tree_distance*tree_no]]
+			stems[tree_id] = []
+			alive[tree_id] = True
+			tree_no += 1
+		
+		age = 0
+		trees_alive = len(trees)
+		while age < max_age:
+			age += 1
+			# grow each tree
+			for tree_id in trees:
+				if alive[tree_id]:
+					configurations = trees[tree_id]
+					[tree_field, new_sprouts, new_stems] = grow_tree(tree_field, configurations, sprouts[tree_id], stems[tree_id])
+					sprouts[tree_id] = new_sprouts
+					stems[tree_id] = new_stems
+					if len(new_sprouts) == 0:
+						print("tree", tree_id, "dies at age", age, "-", trees_alive, "trees still alive")
+						alive[tree_id] = False
+						trees_alive -= 1
+			# calculate energy for each tree
+			if energy_age <= age:
+				for tree_id in trees:
+					if alive[tree_id]:
+						[energy_in, energy_out] = calculate_energy(tree_field, stems[tree_id], sprouts[tree_id])
+						if energy_in < energy_out:
+							print("tree", tree_id, "dies at age", age, "-", trees_alive, "trees still alive")
+							alive[tree_id] = False
+							trees_alive -= 1
+		generations -= 1
+	
+	bio_mass = 0
+	for tree_id in trees:
+		bio_mass += len(stems[tree_id]) + len(sprouts[tree_id])
+	return bio_mass
+
 ###########################################################################
 # prep
 
@@ -160,82 +239,17 @@ column_shade_max = 3
 stem_contribution = 3
 max_height = 10
 
-bio_mass = 0
-
-# grow each tree max_age years, according to the configurations
-for tree_id in trees:
-	configurations = trees[tree_id]
-	# grid representing tree
-	tree = [[empty for column in range(max_age*2+1)]
-	                      for row in range(max_age+1)]
-	tree[max_age][max_age] = first_tree + tree_id
-	# lists of sprouts and stems
-	sprouts = [[max_age, max_age]]
-	stems = []
-	# keep track of age of tree and energies
-	age = 0
-	energy_in = 0
-	energy_out = 0
-	while energy_out <= energy_in and age < max_age:
-		# grow the tree
-		age += 1
-		[tree, sprouts, stems] = grow_tree(tree, configurations, sprouts, stems)
-		# calculate the new energy needs
-		if energy_age <= age:
-			[energy_in, energy_out] = calculate_energy(tree, stems, sprouts)
-	print("tree dies at age", age)
-	bio_mass += len(stems) + len(sprouts)
-
-print("Part 1:", bio_mass)
+#bio_mass = grow_1_tree()
+#print("Part 1:", bio_mass)
 
 ###########################################################################
 # part 2
 
 max_age = 100
-
 tree_distance = 10
+generations = 1
 
-no_of_trees = len(trees)
-tree_field = [[empty for column in range(max_age*2+tree_distance*(no_of_trees-1)+1)]
-                      for row in range(max_age+1)]
-
-# plant trees
-tree_no = 0
-sprouts = {}
-stems = {}
-alive = {}
-for tree_id in trees:
-	tree_field[max_age][max_age+tree_distance*tree_no] = first_tree + tree_id
-	sprouts[tree_id] = [[max_age, max_age+tree_distance*tree_no]]
-	stems[tree_id] = []
-	alive[tree_id] = True
-	tree_no += 1
-
-age = 0
-while age < max_age:
-	age += 1
-	# grow each tree
-	for tree_id in trees:
-		if alive[tree_id]:
-			configurations = trees[tree_id]
-			[tree_field, new_sprouts, new_stems] = grow_tree(tree_field, configurations, sprouts[tree_id], stems[tree_id])
-			sprouts[tree_id] = new_sprouts
-			stems[tree_id] = new_stems
-	# calculate energy for each tree
-	if energy_age <= age:
-		for tree_id in trees:
-			if alive[tree_id]:
-				[energy_in, energy_out] = calculate_energy(tree_field, stems[tree_id], sprouts[tree_id])
-				if energy_in < energy_out:
-					print("tree", tree_id, "dies at age", age)
-					alive[tree_id] = False
-
-#print_map(tree_field)
-
-bio_mass = 0
-for tree_id in trees:
-	bio_mass += len(stems[tree_id]) + len(sprouts[tree_id])
-
+bio_mass = grow_forest(generations)
 print("Part 2:", bio_mass)
 
 ###########################################################################
