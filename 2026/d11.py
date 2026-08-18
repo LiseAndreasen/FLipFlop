@@ -98,7 +98,8 @@ def grow_tree(tree, configurations, sprouts, stems):
 				if is_foreign(tree[r_new][c_new], tree_id):
 					continue
 				# if there isn't free space,
-				# but the existing id is lower than this id
+				# and it's another sprout
+				# but the existing id is lower than the potential new id
 				if not is_stem(tree[r_new][c_new], initial_trees) and tree[r_new][c_new][:3] < configuration[i]:
 					tree[r_new][c_new] = configuration[i] + id2
 		tree[r][c] = STEM + tree_id
@@ -144,7 +145,7 @@ def drop_sprouts(tree_field, alive):
 				sprout = first_tree + tree_id
 				dropped_sprouts[c] = sprout
 				tree_types[tree_type] += 1
-				continue
+				break
 	return dropped_sprouts
 
 def grow_forest_small():
@@ -172,9 +173,8 @@ def grow_forest_small():
 			# calculate the new energy needs
 			if energy_age <= age:
 				[energy_in, energy_out] = calculate_energy(tree, stems, sprouts)
-		print("tree dies at age", age)
+		print("tree %3s dies at age %3d and size %4d" % (tree_id, age, len(stems) + len(sprouts)))
 		bio_mass += len(stems) + len(sprouts)
-		#print(tree)
 	
 	return bio_mass
 	
@@ -214,7 +214,7 @@ def grow_forest(generations):
 					if len(new_sprouts) == 0:
 						alive[tree_id] = False
 						trees_alive -= 1
-						print("tree", tree_id, "dies at age", age, "size", len(stems[tree_id]) + len(sprouts[tree_id]), "-", trees_alive, "trees still alive")
+						print("tree %3s dies at age %3d and size %4d - %3d trees still alive" % (tree_id, age, len(stems[tree_id]) + len(sprouts[tree_id]), trees_alive))
 			# calculate energy for each tree
 			if energy_age <= age:
 				for tree_id in alive:
@@ -223,7 +223,7 @@ def grow_forest(generations):
 						if energy_in < energy_out:
 							alive[tree_id] = False
 							trees_alive -= 1
-							print("tree", tree_id, "dies at age", age, "size", len(stems[tree_id]) + len(sprouts[tree_id]), "-", trees_alive, "trees still alive")
+							print("tree %3s dies at age %3d and size %4d - %3d trees still alive" % (tree_id, age, len(stems[tree_id]) + len(sprouts[tree_id]), trees_alive))
 			# last line of while age
 			
 		generations -= 1
@@ -314,4 +314,3 @@ bio_mass = grow_forest(generations)
 print("\nPart 3:", bio_mass)
 
 # input3: bio mass 4122
-# input2: 10430 is incorrect
